@@ -22,9 +22,10 @@ URL_DB = 'postgresql+psycopg2://admin:pexco599@192.168.0.6/GDA'
 PRINT_LOG = True
 
 ## DATOS FILTROS PARA LA DESCARGA DE LA BASE DE DATOS
-DLGID_LST   = ['PPOT05','NSEN26','PPOT04' ]
+#DLGID_LST   = ['PPOT05','NSEN26','PPOT04' ]
+DLGID_LST   = ['FRPUL001','PPOT04' ]
 
-TIPO_CONFIG = ['CAUDAL ANALÓGICO', 'P_PRESSURE' ]
+TIPO_CONFIG = ['CAUDAL ANALÓGICO', 'PH','TEMPERATURA', 'BAT']
 FECHA_INCIO = '2020-12-11 17:00:00'
 FECHA_FIN   = '2021-11-24 07:00:00'   
 
@@ -32,7 +33,7 @@ FECHA_FIN   = '2021-11-24 07:00:00'
 PATCH_CSV = '/CSV/'
 #NAME_CSV_TO_ANALZE = '201008170000&211007160000.csv'
 NAME_CSV_TO_ANALZE = ''
-SAVE_CSV = True                 # [True  => se descargan datos de la base de datos y se guardan en CSV]
+SAVE_CSV = False                 # [True  => se descargan datos de la base de datos y se guardan en CSV]
                                   # [False => se realiza el analisis de datos a partir del CSV con nombre NAME_CSV_TO_ANALZE]
 
 ## CONFIGURACION DE GRAFICAS
@@ -40,13 +41,13 @@ SAVE_CSV = True                 # [True  => se descargan datos de la base de dat
 QUERY_DATA_LIST = [
                     #'NSEN26-CAUDAL ANALÓGICO',
                     #'NSEN26-P_PRESSURE',
-                    'PPOT05-CAUDAL ANALÓGICO',
-                    'PPOT04-CAUDAL ANALÓGICO',
+                    'FRPUL001-CAUDAL ANALÓGICO',
+                    #'PPOT04-CAUDAL ANALÓGICO',
                   ]
                   
 ### FECHA Y HORA ENTRE LAS CUALES SE QUIERE VER EL GRAFICO
 START_GRAPH_TIME = '2020-12-11 17:00:00';
-END_GRAPH_TIME   = '2020-11-24 05:00:000';
+END_GRAPH_TIME   = '2020-12-11 18:00:00';
 
 ### PERIODO DE MUESTREO EN MINUTOS
 DOWNSAMPLE = 10
@@ -199,7 +200,9 @@ class processingData:
 
 
 class dataAnalysis:
-
+    '''
+        tools for data processing
+    '''
     def __init__(self,dataFrame):
         self.dataFrame = dataFrame;
 
@@ -247,11 +250,53 @@ class dataAnalysis:
         self.dataFrame = self.dataFrame * 2
         print(self.dataFrame)
         
+    def francis_inv(self,L,typeConf):
+        '''
+            calculations of the water height from the waterflow using Francis's formula
+            https://drive.google.com/file/d/1YvJ_WRHe2QswFk1U0-lD2LhOqFKbzyM5/view?usp=sharing
+
+            <= L: width of the crest
+            <= typeConf: type of cunfiguration that has flow data
+            => self.dataFrame: dataframe with the column typeConf modified with the height of the water
+        '''
+        import numpy as np
+        
+        def math_inv(L,Q):
+            ''' 
+                inverse manning calculus
+                    <= L: width of the crest
+                    <= Q: flow in m3/h
+                    => h: heigh of water
+            '''
+               
+            Qlast = 999999999999999999
+            hlast = 0 
+
+            discreetHeigh = np.array(list(range(1500)))*0.001                   # possible water height values  
+
+            for hn in discreetHeigh:
+                Qn = 1.84*(L-(0.2*hn))*pow(hn,1.5)*3600                         # flow water in m3/h
+                if (abs(Qn-Q) < abs(Qlast-Q)):
+                    Qlast = Qn
+                    hlast = hn
+                else:
+                    return hlast
+                    
+        for cau in self.dataFrame.index: self.dataFrame[typeConf][cau] = math_inv(L,self.dataFrame[typeConf][cau])
 
 
+        
+        
+        
+
+
+
+#################### MAIN ####################
 
 def getDatas():
-    ''' '''
+    '''
+        Gets the required datas from a database and put it into a dataframe
+    '''
     procData = processingData()
 
     if(SAVE_CSV):procData.save_to_CSV(procData.read_data_from_db())       # leer los datos de la base de datos y guardarlos en un csv
@@ -261,14 +306,17 @@ def getDatas():
     return wdf_base
 
 def processDatas(datos):
-    ''' '''
-    dA = dataAnalysis(datos)
+    ''' 
+        data analysis process
+    '''
+    # ICLASS'S INSTANCES
+    dA = dataAnalysis(datos)                                                
 
-    #dA.linearConvertion(4,20,0,10)
+    # CHANGES IN THE DATA
+    dA.francis_inv(0.4,'FRPUL001-CAUDAL ANALÓGICO')
+                                                              
     
-    #dA.manning()                                                            # aplico formula de manning
-    
-    dA.show_grafic(QUERY_DATA_LIST)   # grafico los valores de QUERY_DATA_LIST
+    dA.show_grafic(QUERY_DATA_LIST)                                          
 
     
     
@@ -276,8 +324,8 @@ def processDatas(datos):
 
 
 if __name__ == '__main__':
-    datos = getDatas()
-    processDatas(datos)
+    datos = getDatas()                                  # gest dataframe
+    processDatas(datos)                                 # analysis of dataframe
     exit(0)
     
 
