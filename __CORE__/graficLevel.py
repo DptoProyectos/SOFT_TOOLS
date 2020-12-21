@@ -22,7 +22,7 @@ URL_DB = 'postgresql+psycopg2://admin:pexco599@192.168.0.6/GDA'
 PRINT_LOG = True
 
 ## DATOS FILTROS PARA LA DESCARGA DE LA BASE DE DATOS
-DLGID_LST   = ['FRPUL001', 'ODPT01','RIVPERF15','RIVPERF10']
+DLGID_LST   = ['FRPUL001','NSEN25']
 #DLGID_LST   = ['ODPT01', 'RIVPERF01']
 #DLGID_LST   = ['ODPT01', 'FRPUL001']
 
@@ -247,12 +247,6 @@ def test_OD():
 
     dissolved_oxygen(wdf_base).show_grafic(QUERY_DATA_LIST)   # grafico los valores de QUERY_DATA_LIST
 
-
-
-    
-
-
-    
 
     
 
