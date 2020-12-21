@@ -23,7 +23,7 @@ PRINT_LOG = True
 
 ## DATOS FILTROS PARA LA DESCARGA DE LA BASE DE DATOS
 #DLGID_LST   = ['PPOT05','NSEN26','PPOT04' ]
-DLGID_LST   = ['FRPUL001','PPOT04' ]
+DLGID_LST   = ['FRPUL001']
 
 TIPO_CONFIG = ['CAUDAL ANALÓGICO', 'PH','TEMPERATURA', 'BAT']
 FECHA_INCIO = '2020-12-11 17:00:00'
@@ -33,7 +33,7 @@ FECHA_FIN   = '2021-11-24 07:00:00'
 PATCH_CSV = '/CSV/'
 #NAME_CSV_TO_ANALZE = '201008170000&211007160000.csv'
 NAME_CSV_TO_ANALZE = ''
-SAVE_CSV = False                 # [True  => se descargan datos de la base de datos y se guardan en CSV]
+SAVE_CSV = True                 # [True  => se descargan datos de la base de datos y se guardan en CSV]
                                   # [False => se realiza el analisis de datos a partir del CSV con nombre NAME_CSV_TO_ANALZE]
 
 ## CONFIGURACION DE GRAFICAS
@@ -111,7 +111,7 @@ class processingData:
 
         df_base = None
         connection = mySQL_db().connect_to_db()
-        
+        DLGID_LST.append('')
 
         sql = """SELECT spx_unidades.dlgid, spx_datos.fechadata, spx_tipo_configuracion.tipo_configuracion, spx_datos.valor FROM spx_datos
                 INNER JOIN spx_tipo_configuracion ON spx_tipo_configuracion.id=spx_datos.medida_id
