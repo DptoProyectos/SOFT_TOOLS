@@ -47,7 +47,7 @@ QUERY_DATA_LIST = [
                   
 ### FECHA Y HORA ENTRE LAS CUALES SE QUIERE VER EL GRAFICO
 START_GRAPH_TIME = '2020-12-11 17:00:00';
-END_GRAPH_TIME   = '2020-12-11 18:00:00';
+END_GRAPH_TIME   = '2021-12-11 18:00:00';
 
 ### PERIODO DE MUESTREO EN MINUTOS
 DOWNSAMPLE = 10
@@ -223,7 +223,7 @@ class dataAnalysis:
             
         # filtrado por datetime
         try: 
-            data_to_grafic = data_to_grafic.loc[START_GRAPH_TIME:END_GRAPH_TIME]
+            data_to_grafic = data_to_grafic.loc[pd.to_datetime(START_GRAPH_TIME):pd.to_datetime(END_GRAPH_TIME)]
         except Exception as err_var:
             print_log(self.dataFrame)
             print_log('ERROR: EXCEPTION {0}'.format(err_var))
@@ -314,8 +314,6 @@ def processDatas(datos):
 
     # CHANGES IN THE DATA
     dA.francis_inv(0.4,'FRPUL001-CAUDAL ANALÓGICO')
-                                                              
-    
     dA.show_grafic(QUERY_DATA_LIST)                                          
 
     
