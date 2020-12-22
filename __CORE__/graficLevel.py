@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 # CONFIGURATION DEL SCRIPT#
 #URL_DB = 'mysql+pymysql://pablo:spymovil@192.168.0.8/GDA'
 URL_DB = 'postgresql+psycopg2://admin:pexco599@192.168.0.6/GDA'
-PRINT_LOG = True
+PRINT_LOG = False
 
 ## DATOS FILTROS PARA LA DESCARGA DE LA BASE DE DATOS
 DLGID_LST   = ['FRPUL001']
@@ -102,15 +102,22 @@ class mySQL_db:
 
 class processingData:
 
-    def __init__(self,df_base=None):
+    def __init__(self,df_base=None,dlg=DLGID_LST,typeConf=TIPO_CONFIG,starDate=FECHA_INCIO,endDate=FECHA_FIN,pathCSV=PATCH_CSV,nameCSV2Analyse=NAME_CSV_TO_ANALZE,downsample=DOWNSAMPLE):
         self.df_base = df_base
+        self.DLGID_LST = dlg
+        self.TIPO_CONFIG = typeConf
+        self.FECHA_INCIO = starDate
+        self.FECHA_FIN = endDate
+        self.PATCH_CSV = pathCSV
+        self.NAME_CSV_TO_ANALZE = nameCSV2Analyse
+        self.DOWNSAMPLE = downsample
 
     def read_data_from_db(self):
         ''' lee los datos de la base de datos y los devuelve en un dataframe '''
 
         df_base = None
         connection = mySQL_db().connect_to_db()
-        DLGID_LST.append('')
+        self.DLGID_LST.append('')
 
         sql = """SELECT spx_unidades.dlgid, spx_datos.fechadata, spx_tipo_configuracion.tipo_configuracion, spx_datos.valor FROM spx_datos
                 INNER JOIN spx_tipo_configuracion ON spx_tipo_configuracion.id=spx_datos.medida_id
@@ -121,7 +128,7 @@ class processingData:
                 AND spx_datos.fechadata > '{2}'
                 AND spx_datos.fechadata < '{3}'
                 ORDER BY spx_datos.fechadata
-        """.format(tuple(TIPO_CONFIG),tuple(DLGID_LST),FECHA_INCIO,FECHA_FIN)
+        """.format(tuple(self.TIPO_CONFIG),tuple(self.DLGID_LST),self.FECHA_INCIO,self.FECHA_FIN)
 
         df_base = mySQL_db().execute_sql_query(connection,sql)
         return df_base
@@ -131,24 +138,24 @@ class processingData:
         
         # damos formato al nombre del archivo      
         name_CSV_file = '{0}&{1}.csv'.format(
-            datetime.strptime(FECHA_INCIO, '%Y-%m-%d %H:%M:%S').strftime('%y%m%d%H%M%S'), 
-            datetime.strptime(FECHA_FIN  , '%Y-%m-%d %H:%M:%S').strftime('%y%m%d%H%M%S')
+            datetime.strptime(self.FECHA_INCIO, '%Y-%m-%d %H:%M:%S').strftime('%y%m%d%H%M%S'), 
+            datetime.strptime(self.FECHA_FIN  , '%Y-%m-%d %H:%M:%S').strftime('%y%m%d%H%M%S')
         )
-        df_base.to_csv('{0}{1}'.format(PATCH_CSV,name_CSV_file))
+        df_base.to_csv('{0}{1}'.format(self.PATCH_CSV,name_CSV_file))
       
     def read_from_CSV(self):
         ''' lee los datos del CSV y los devuelve en un dataFrame '''
         
         # chequeo si esta seleccionado para leer un csv distinto al ultimo descargado
-        if not NAME_CSV_TO_ANALZE:
+        if not self.NAME_CSV_TO_ANALZE:
             print_log('se carga el ultimo archivo csv descargado')
             name_CSV_file = '{0}&{1}.csv'.format(
-                datetime.strptime(FECHA_INCIO, '%Y-%m-%d %H:%M:%S').strftime('%y%m%d%H%M%S'), 
-                datetime.strptime(FECHA_FIN  , '%Y-%m-%d %H:%M:%S').strftime('%y%m%d%H%M%S')
+                datetime.strptime(self.FECHA_INCIO, '%Y-%m-%d %H:%M:%S').strftime('%y%m%d%H%M%S'), 
+                datetime.strptime(self.FECHA_FIN  , '%Y-%m-%d %H:%M:%S').strftime('%y%m%d%H%M%S')
                 )
-            patch_csv = '{0}{1}'.format(PATCH_CSV,name_CSV_file)
+            patch_csv = '{0}{1}'.format(self.PATCH_CSV,name_CSV_file)
         else:
-            patch_csv = '{0}{1}'.format(PATCH_CSV,NAME_CSV_TO_ANALZE)
+            patch_csv = '{0}{1}'.format(self.PATCH_CSV,self.NAME_CSV_TO_ANALZE)
 
         # chequeo si existe el anrchivo CSV
         if not(os.path.isfile(patch_csv)):
@@ -189,7 +196,7 @@ class processingData:
             for tipo_configuracion in config_loaded[dlgid]:
                 data = wdf_base['valor', dlgid]
                 data = data.copy()
-                data = data.resample(f'{DOWNSAMPLE}Min', axis=0).mean()
+                data = data.resample(f'{self.DOWNSAMPLE}Min', axis=0).mean()
                 data = data[tipo_configuracion]
                 data = data.to_frame(name=f'{dlgid}-{tipo_configuracion}')
                 data = data[f'{dlgid}-{tipo_configuracion}']
@@ -290,7 +297,6 @@ class dataAnalysis:
 
 
 #################### MAIN ####################
-
 def getDatas():
     '''
         Gets the required datas from a database and put it into a dataframe
@@ -303,6 +309,25 @@ def getDatas():
 
     return wdf_base
 
+def extCall(dlg,typeConf,starDate,endDate,downsample):
+    
+    procData = processingData(None,dlg,typeConf,starDate,endDate,PATCH_CSV,NAME_CSV_TO_ANALZE,downsample)
+
+    if(SAVE_CSV):procData.save_to_CSV(procData.read_data_from_db())         # leer los datos de la base de datos y guardarlos en un csv
+
+    wdf_base = procData.index_data(procData.read_from_CSV())                # lee los datos del csv y los devuelve ya indexados
+
+    QUERY_DATA_LIST = []
+    for dg in dlg:                                                          # build the QUERY_DATA_LIST for plot datas
+        for tp in typeConf:
+            QUERY_DATA_LIST.append('{0}-{1}'.format(dg,tp))
+    
+    dataAnalysis(wdf_base).show_grafic(QUERY_DATA_LIST)   
+
+
+
+
+    
 def processDatas(datos):
     ''' 
         data analysis process
