@@ -22,42 +22,31 @@ URL_DB = 'postgresql+psycopg2://admin:pexco599@192.168.0.6/GDA'
 PRINT_LOG = True
 
 ## DATOS FILTROS PARA LA DESCARGA DE LA BASE DE DATOS
-DLGID_LST   = ['FRPUL001','NSEN25']
-#DLGID_LST   = ['ODPT01', 'RIVPERF01']
-#DLGID_LST   = ['ODPT01', 'FRPUL001']
+DLGID_LST   = ['FRPUL001']
 
-#TIPO_CONFIG = ['Alt_CA', 'BAT']
-TIPO_CONFIG = ['CAUDAL ANALÓGICO', 'PH','TEMPERATURA', 'BAT', 'H_TQ', 'PUMP_PERF_STATE', 'RESPALDO_TIMER']
-FECHA_INCIO = '2020-11-24 00:00:00'
+TIPO_CONFIG = ['CAUDAL ANALÓGICO', 'PH','TEMPERATURA', 'BAT']
+FECHA_INCIO = '2020-12-11 17:00:00'
 FECHA_FIN   = '2021-11-24 07:00:00'   
 
 ## CONFIGURACION DEL SALVADO DEL CSV
 PATCH_CSV = '/CSV/'
 #NAME_CSV_TO_ANALZE = '201008170000&211007160000.csv'
 NAME_CSV_TO_ANALZE = ''
-SAVE_CSV  = True                # [True  => se descargan datos de la base de datos y se guardan en CSV]
-                                 # [False => se realiza el analisis de datos a partir del CSV con nombre NAME_CSV_TO_ANALZE]
+SAVE_CSV = True                 # [True  => se descargan datos de la base de datos y se guardan en CSV]
+                                  # [False => se realiza el analisis de datos a partir del CSV con nombre NAME_CSV_TO_ANALZE]
 
 ## CONFIGURACION DE GRAFICAS
 ### MAGNITUDES A PLOTEAR
 QUERY_DATA_LIST = [
-                    #'FRPUL001-CAUDAL ANALÓGICO',
-                    #'FRPUL001-PH',
-                    #'FRPUL001-TEMPERATURA',
-                    'FRPUL001-BAT',
-                    #'ODPT01-OXIGENO_DIS',
-                    #'ODPT01-VAR_FREC',
-                    #'ODPT01-CURRENT_PUMP',
-                    #'ODPT02-OXIGENO_DIS',
-                    #'PTCA001-Alt_CA',
-                    #'RIVPERF15-H_TQ',
-                    #'RIVPERF06-RESPALDO_TIMER',
-                    #'RIVPERF10-PUMP_PERF_STATE',
+                    #'NSEN26-CAUDAL ANALÓGICO',
+                    #'NSEN26-P_PRESSURE',
+                    'FRPUL001-CAUDAL ANALÓGICO',
+                    #'PPOT04-CAUDAL ANALÓGICO',
                   ]
                   
 ### FECHA Y HORA ENTRE LAS CUALES SE QUIERE VER EL GRAFICO
-START_GRAPH_TIME = '2020-11-23 23:00:00';
-END_GRAPH_TIME   = '2020-11-24 05:00:00';
+START_GRAPH_TIME = '2020-12-11 17:00:00';
+END_GRAPH_TIME   = '2021-12-11 18:00:00';
 
 ### PERIODO DE MUESTREO EN MINUTOS
 DOWNSAMPLE = 10
@@ -111,7 +100,7 @@ class mySQL_db:
         return df_base
 
 
-class dissolved_oxygen:
+class processingData:
 
     def __init__(self,df_base=None):
         self.df_base = df_base
@@ -121,7 +110,7 @@ class dissolved_oxygen:
 
         df_base = None
         connection = mySQL_db().connect_to_db()
-        
+        DLGID_LST.append('')
 
         sql = """SELECT spx_unidades.dlgid, spx_datos.fechadata, spx_tipo_configuracion.tipo_configuracion, spx_datos.valor FROM spx_datos
                 INNER JOIN spx_tipo_configuracion ON spx_tipo_configuracion.id=spx_datos.medida_id
@@ -208,16 +197,24 @@ class dissolved_oxygen:
         
         return df_boundle
 
+
+class dataAnalysis:
+    '''
+        tools for data processing
+    '''
+    def __init__(self,dataFrame):
+        self.dataFrame = dataFrame;
+
     def show_grafic(self,query_data_list):
         '''
             entra self.df_base y a partir del query_data_list hago las graficas que necesito
         '''
-                
+               
         # filtrado por magnitud
         try: 
-            data_to_grafic = self.df_base.loc[:,query_data_list]
+            data_to_grafic = self.dataFrame.loc[:,query_data_list]
         except Exception as err_var:
-            data_to_grafic = self.df_base 
+            data_to_grafic = self.dataFrame 
             print_log('ERROR: EXCEPTION {0}'.format(err_var))
             print_log('ERROR: filtrado incorrecto por magnitud !!!')
             print_log('ERROR: revisar => QUERY_DATA_LIST  !!!')
@@ -225,9 +222,9 @@ class dissolved_oxygen:
             
         # filtrado por datetime
         try: 
-            data_to_grafic = data_to_grafic.loc[START_GRAPH_TIME:END_GRAPH_TIME]
+            data_to_grafic = data_to_grafic.loc[pd.to_datetime(START_GRAPH_TIME):pd.to_datetime(END_GRAPH_TIME)]
         except Exception as err_var:
-            print_log(self.df_base)
+            print_log(self.dataFrame)
             print_log('ERROR: EXCEPTION {0}'.format(err_var))
             print_log('ERROR: filtrado incorrecto por timpo !!!')
             print_log('ERROR: revisar => START_GRAPH_TIME  !!!')
@@ -237,27 +234,94 @@ class dissolved_oxygen:
         data_to_grafic.plot()
         plt.show()
 
+    def linearConvertion(x1,x2,y1,y2):
+        '''
+            y = mx + n
+        '''
+        m = ((y2-y1)/(x2-x1))
+        n = (y2 - (m*x2))
+        self.dataFrame = ((self.dataFrame * m) + n)
 
-def test_OD():
-    OD = dissolved_oxygen()
+    def manning(self):
+        ''''''
+        # entra df_base
+        
+        self.dataFrame = self.dataFrame * 2
+        print(self.dataFrame)
+        
+    def francis_inv(self,L,typeConf):
+        '''
+            calculations of the water height from the waterflow using Francis's formula
+            https://drive.google.com/file/d/1YvJ_WRHe2QswFk1U0-lD2LhOqFKbzyM5/view?usp=sharing
 
-    if(SAVE_CSV):OD.save_to_CSV(OD.read_data_from_db())       # leer los datos de la base de datos y guardarlos en un csv
+            <= L: width of the crest
+            <= typeConf: type of cunfiguration that has flow data
+            => self.dataFrame: dataframe with the column typeConf modified with the height of the water
+        '''
+        import numpy as np
+        
+        def math_inv(L,Q):
+            ''' 
+                inverse manning calculus
+                    <= L: width of the crest
+                    <= Q: flow in m3/h
+                    => h: heigh of water
+            '''
+               
+            Qlast = 999999999999999999
+            hlast = 0 
 
-    wdf_base = OD.index_data(OD.read_from_CSV())              # lee los datos del csv y los devuelve ya indexados
+            discreetHeigh = np.array(list(range(1500)))*0.001                   # possible water height values  
 
-    dissolved_oxygen(wdf_base).show_grafic(QUERY_DATA_LIST)   # grafico los valores de QUERY_DATA_LIST
+            for hn in discreetHeigh:
+                Qn = 1.84*(L-(0.2*hn))*pow(hn,1.5)*3600                         # flow water in m3/h
+                if (abs(Qn-Q) < abs(Qlast-Q)):
+                    Qlast = Qn
+                    hlast = hn
+                else:
+                    return hlast
+                    
+        for cau in self.dataFrame.index: self.dataFrame[typeConf][cau] = math_inv(L,self.dataFrame[typeConf][cau])
 
+
+        
+        
+        
+
+
+#################### MAIN ####################
+
+def getDatas():
+    '''
+        Gets the required datas from a database and put it into a dataframe
+    '''
+    procData = processingData()
+
+    if(SAVE_CSV):procData.save_to_CSV(procData.read_data_from_db())       # leer los datos de la base de datos y guardarlos en un csv
+
+    wdf_base = procData.index_data(procData.read_from_CSV())              # lee los datos del csv y los devuelve ya indexados
+
+    return wdf_base
+
+def processDatas(datos):
+    ''' 
+        data analysis process
+    '''
+    # ICLASS'S INSTANCES
+    dA = dataAnalysis(datos)                                                
+
+    # CHANGES IN THE DATA
+    dA.francis_inv(0.4,'FRPUL001-CAUDAL ANALÓGICO')
+    dA.show_grafic(QUERY_DATA_LIST)                                          
 
     
-
     
-
-
-
+    
 
 
 if __name__ == '__main__':
-    test_OD()
+    datos = getDatas()                                  # gest dataframe
+    processDatas(datos)                                 # analysis of dataframe
     exit(0)
     
 
