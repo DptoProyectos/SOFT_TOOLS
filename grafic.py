@@ -13,19 +13,20 @@ from __CORE__.graficLevel import extCall
 
 # DATALOGGERS DE LOS CUALES SE QUIERE LEER LOS DATOS
 DLGID_LST   = [
-                'FRPUL001',
+                'PPOT04',
+                'PPOT05',
               ]
 
 # MAGNITUDES QUE SE QUIEREN ANALIZAR
 TIPO_CONFIG = [
                'CAUDAL ANALÓGICO', 
-               'PH',
-               'TEMPERATURA', 
-               'BAT', 
+               #'PH',
+               #'TEMPERATURA', 
+               #'BAT', 
               ]
 
 # RANGO DE FECHAS EN LAS CUALES SE QUIEREN ANALIZAR LOS DATOS
-FECHA_INCIO = '2020-11-24 00:00:00'
+FECHA_INCIO = '2020-12-18 17:00:00'
 FECHA_FIN   = '2021-11-24 07:00:00'   
 
 # TIEMPO DE DOWNSAMPLE EN MINUTOS

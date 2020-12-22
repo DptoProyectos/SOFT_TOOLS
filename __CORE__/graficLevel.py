@@ -112,6 +112,8 @@ class processingData:
         self.NAME_CSV_TO_ANALZE = nameCSV2Analyse
         self.DOWNSAMPLE = downsample
 
+        self.TIPO_CONFIG.append('')             # add a nul value for correct a bug when the list has only one value
+
     def read_data_from_db(self):
         ''' lee los datos de la base de datos y los devuelve en un dataframe '''
 
