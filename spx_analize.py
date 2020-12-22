@@ -15,7 +15,12 @@ import datetime
 import os
 
 #LISTA_DLGID = ['PTEST01','PTEST02'];
-LISTA_DLGID = ['FRPUL001'];
+LISTA_DLGID = [
+                'PTEST01',
+                'PTEST02',
+                'PTEST03',
+                'PTEST04',
+              ]
 
 
 class DATABASE:
@@ -78,8 +83,8 @@ class DATABASE:
     def leer_df_datalines(self, fecha_inicio='2020-06-17 12:00'):
         tb_datos = Table('spx_datos', self.metadata, autoload = True, autoload_with=self.engine)
         sel = select([tb_datos.c.fechadata, tb_datos.c.valor, tb_datos.c.ubicacion_id])
-        sel = sel.where(tb_datos.c.medida_id == 8)     
-        #sel = sel.where(tb_datos.c.medida_id == 67)                                 # para tomar los datos en el datalogger de 8CH                                         
+        #sel = sel.where(tb_datos.c.medida_id == 8)     
+        sel = sel.where(tb_datos.c.medida_id == 67)                                 # para tomar los datos en el datalogger de 8CH                                         
         sel = sel.where(tb_datos.c.fechadata > '{0}'.format(fecha_inicio))
         sel = sel.where(tb_datos.c.fechadata < datetime.datetime.now())
         rp = self.conn.execute(sel)
@@ -195,7 +200,7 @@ class DATABASE:
 
 if __name__ == '__main__':
 
-    opts = {'fecha_inicio':'2020-12-12 17:00', 'lista_dlg':LISTA_DLGID }
+    opts = {'fecha_inicio':'2020-12-18 19:00', 'lista_dlg':LISTA_DLGID }
 
     if len(argv) > 1 and argv[1].startswith('--help'):
         print("""
