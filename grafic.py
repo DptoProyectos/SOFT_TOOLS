@@ -1,6 +1,6 @@
 #!/usr/aut_env/bin/python3.8
 '''
-version: 1.0.0
+version: 1.0.2
 
 DESCRIPCION
 Script para realizar graficas en intervalos de tiempos definidos
