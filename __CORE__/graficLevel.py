@@ -19,14 +19,14 @@ import matplotlib.pyplot as plt
 # CONFIGURATION DEL SCRIPT#
 #URL_DB = 'mysql+pymysql://pablo:spymovil@192.168.0.8/GDA'
 URL_DB = 'postgresql+psycopg2://admin:pexco599@192.168.0.6/GDA'
-PRINT_LOG = False
+PRINT_LOG = True
 
 ## DATOS FILTROS PARA LA DESCARGA DE LA BASE DE DATOS
 DLGID_LST   = ['FRPUL001']
 
 TIPO_CONFIG = ['CAUDAL ANALÓGICO', 'PH','TEMPERATURA', 'BAT']
-FECHA_INCIO = '2020-12-11 17:00:00'
-FECHA_FIN   = '2021-11-24 07:00:00'   
+FECHA_INCIO = '2020-12-11 00:00:00'
+FECHA_FIN   = '2020-12-22 23:59:59'   
 
 ## CONFIGURACION DEL SALVADO DEL CSV
 PATCH_CSV = '/CSV/'
@@ -45,8 +45,8 @@ QUERY_DATA_LIST = [
                   ]
                   
 ### FECHA Y HORA ENTRE LAS CUALES SE QUIERE VER EL GRAFICO
-START_GRAPH_TIME = '2020-12-11 17:00:00';
-END_GRAPH_TIME   = '2021-12-11 18:00:00';
+START_GRAPH_TIME = '2020-12-18 00:00:00';
+END_GRAPH_TIME   = '2020-12-18 23:59:59';
 
 ### PERIODO DE MUESTREO EN MINUTOS
 DOWNSAMPLE = 10
@@ -214,7 +214,7 @@ class dataAnalysis:
     def __init__(self,dataFrame):
         self.dataFrame = dataFrame;
 
-    def show_grafic(self,query_data_list):
+    def show_grafic(self,query_data_list,startTime,endTime):
         '''
             entra self.df_base y a partir del query_data_list hago las graficas que necesito
         '''
@@ -231,7 +231,7 @@ class dataAnalysis:
             
         # filtrado por datetime
         try: 
-            data_to_grafic = data_to_grafic.loc[pd.to_datetime(START_GRAPH_TIME):pd.to_datetime(END_GRAPH_TIME)]
+            data_to_grafic = data_to_grafic.loc[pd.to_datetime(startTime):pd.to_datetime(endTime)]
         except Exception as err_var:
             print_log(self.dataFrame)
             print_log('ERROR: EXCEPTION {0}'.format(err_var))
@@ -324,12 +324,8 @@ def extCall(dlg,typeConf,starDate,endDate,downsample):
         for tp in typeConf:
             QUERY_DATA_LIST.append('{0}-{1}'.format(dg,tp))
     
-    dataAnalysis(wdf_base).show_grafic(QUERY_DATA_LIST)   
+    dataAnalysis(wdf_base).show_grafic(QUERY_DATA_LIST,starDate,endDate)   
 
-
-
-
-    
 def processDatas(datos):
     ''' 
         data analysis process
@@ -339,7 +335,7 @@ def processDatas(datos):
 
     # CHANGES IN THE DATA
     dA.francis_inv(0.4,'FRPUL001-CAUDAL ANALÓGICO')
-    dA.show_grafic(QUERY_DATA_LIST)                                          
+    dA.show_grafic(QUERY_DATA_LIST,START_GRAPH_TIME,END_GRAPH_TIME)                                          
 
     
     
