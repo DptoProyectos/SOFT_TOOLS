@@ -21,14 +21,14 @@ import os
 
 class DATABASE:
 
-    def __init__(self,):
+    def __init__(self,dlg_type):
         self.engine = None
         self.conn = None
         self.connected = False
         self.metadata = None
         #self.url = 'mysql+pymysql://pablo:spymovil@192.168.0.8/GDA'
         self.url = 'postgresql+psycopg2://admin:pexco599@192.168.0.6/GDA'
-        
+        self.dlg_type = dlg_type
 
     def connect(self):
         """
@@ -79,8 +79,15 @@ class DATABASE:
     def leer_df_datalines(self, fecha_inicio='2020-06-17 12:00'):
         tb_datos = Table('spx_datos', self.metadata, autoload = True, autoload_with=self.engine)
         sel = select([tb_datos.c.fechadata, tb_datos.c.valor, tb_datos.c.ubicacion_id])
-        #sel = sel.where(tb_datos.c.medida_id == 8)     
-        sel = sel.where(tb_datos.c.medida_id == 67)                                 # para tomar los datos en el datalogger de 8CH                                         
+        
+        # select the king of dlg for test
+        if self.dlg_type == '5CH':
+            print ('datalogger de 5CH\n')
+            sel = sel.where(tb_datos.c.medida_id == 8)   
+        else:
+            print ('datalogger de 8CH\n')
+            sel = sel.where(tb_datos.c.medida_id == 67) 
+           
         sel = sel.where(tb_datos.c.fechadata > '{0}'.format(fecha_inicio))
         sel = sel.where(tb_datos.c.fechadata < datetime.datetime.now())
         rp = self.conn.execute(sel)
@@ -194,7 +201,7 @@ class DATABASE:
         os.system('lowriter datos.xlsx')
 
 
-def runAnalize(dlg_lst,start_date):
+def runAnalize(dlg_lst,start_date, dlg_type):
     '''
         function to run the data analize
     '''
@@ -205,7 +212,7 @@ def runAnalize(dlg_lst,start_date):
     print('lista_dlg={0}'.format(opts['lista_dlg']))
     print('')
     
-    bd = DATABASE()
+    bd = DATABASE(dlg_type)
     bd.connect()
     df_inits = bd.process_df_inits(opts['fecha_inicio'],opts['lista_dlg'])
     df_datos = bd.process_df_datos(opts['fecha_inicio'],opts['lista_dlg'])
