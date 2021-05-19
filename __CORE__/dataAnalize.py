@@ -83,7 +83,8 @@ class DATABASE:
         # select the king of dlg for test
         if self.dlg_type == '5CH':
             print ('datalogger de 5CH\n')
-            sel = sel.where(tb_datos.c.medida_id == 8)   
+            #sel = sel.where(tb_datos.c.medida_id == 8)   
+            sel = sel.where(tb_datos.c.medida_id == 208) 
         else:
             print ('datalogger de 8CH\n')
             sel = sel.where(tb_datos.c.medida_id == 67) 

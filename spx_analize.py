@@ -11,18 +11,22 @@ from __CORE__.dataAnalize import runAnalize
 
 # DATALOGGERS DE LOS CUALES SE QUIERE ANALIZAR SUS DATOS
 LISTA_DLGID = [
-                'PTEST01',
+                #'PTEST01',
                 #'PTEST02',
                 #'PTEST03',
                 #'PTEST04',
+                #'FRICAN002',
+                #'EFLUTEST01',
+                'CTRLPAY01',
+
               ]
 
 # TIPO DE DATALOGGER QUE SE QUIERE TESTEAR { 8CH | 5CH }
-DLG_TYPE = '8CH'
+DLG_TYPE = '5CH'
 
 
 # FECHA A PARTIR DE LA CUAL SE QUIERE HACER EL ANALISIS DE LOS DATOS
-FECHA_INCIO = '2021-02-18 19:00'
+FECHA_INCIO = '2021-05-07 17:00'
 
 
 
