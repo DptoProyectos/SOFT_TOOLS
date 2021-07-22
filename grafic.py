@@ -14,19 +14,19 @@ from __CORE__.graficLevel import extCall
 # DATALOGGERS DE LOS CUALES SE QUIERE LEER LOS DATOS
 DLGID_LST   = [
                 #'PPOT04',
-                #'PPOT05',
-                #'UYTAC023',
-                #'UYTAC044',
-                #'UYTAC042', 
                 #'FRPUL001'
                 #'FRICAN002',
                 #'EFLUTEST01',
-                'CTRLPAY01',
+                #'CTRLPAY01',
+                'CCCA01',
+                #'PSTPERF06'  
+                #'CAUCUS01' , 
+
               ]
 
 # MAGNITUDES QUE SE QUIEREN ANALIZAR
 TIPO_CONFIG = [
-               #'MB_AlturaCámara', 
+               #'MB_AlturaCamara', 
                #'MB_CaudalSellos',
                #'MB_CorrienteVariador', 
                #'MB_FrecuanciaVariador', 
@@ -36,15 +36,19 @@ TIPO_CONFIG = [
                #'MB_TemperaturaVariador',
                #'MB_UpdateFrequecy',
                #'MB_UpdateModo',
+               #'CAUDAL ANALÓGICO',
+               'MODBUS_M01',
+               #'MB_PH',
+               #'PUMP_PERF_STATE',
 
               ]
 
 # RANGO DE FECHAS EN LAS CUALES SE QUIEREN ANALIZAR LOS DATOS
-FECHA_INCIO = '2021-05-08 16:00:00'
-FECHA_FIN   = '2022-05-08 14:00:00'   
+FECHA_INCIO = '2021-07-16 17:00:00'
+FECHA_FIN   = '2022-06-01 00:00:00'   
 
 # TIEMPO DE DOWNSAMPLE EN MINUTOS
-DOWNSAMPLE = 1                                   
+DOWNSAMPLE = False                     # [ timeInMinutes | False ]                  
 
 
 

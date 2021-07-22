@@ -28,6 +28,9 @@ class DATABASE:
         self.metadata = None
         #self.url = 'mysql+pymysql://pablo:spymovil@192.168.0.8/GDA'
         self.url = 'postgresql+psycopg2://admin:pexco599@192.168.0.6/GDA'
+        #self.url = 'postgresql+psycopg2://admin:pexco599@10.1.1.153/GDA'
+        
+    
         self.dlg_type = dlg_type
 
     def connect(self):
@@ -83,8 +86,8 @@ class DATABASE:
         # select the king of dlg for test
         if self.dlg_type == '5CH':
             print ('datalogger de 5CH\n')
-            #sel = sel.where(tb_datos.c.medida_id == 8)   
-            sel = sel.where(tb_datos.c.medida_id == 208) 
+            sel = sel.where(tb_datos.c.medida_id == 8)   
+            #sel = sel.where(tb_datos.c.medida_id == 208) 
         else:
             print ('datalogger de 8CH\n')
             sel = sel.where(tb_datos.c.medida_id == 67) 

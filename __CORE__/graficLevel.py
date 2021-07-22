@@ -198,7 +198,7 @@ class processingData:
             for tipo_configuracion in config_loaded[dlgid]:
                 data = wdf_base['valor', dlgid]
                 data = data.copy()
-                data = data.resample(f'{self.DOWNSAMPLE}Min', axis=0).mean()
+                if self.DOWNSAMPLE: data = data.resample(f'{self.DOWNSAMPLE}Min', axis=0).mean()
                 data = data[tipo_configuracion]
                 data = data.to_frame(name=f'{dlgid}-{tipo_configuracion}')
                 data = data[f'{dlgid}-{tipo_configuracion}']
